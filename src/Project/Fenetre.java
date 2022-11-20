@@ -4,12 +4,18 @@
  */
 package Project;
 
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author achraf
  */
 public class Fenetre extends javax.swing.JFrame {
 
+    ArrayList<Student> etudiants = new ArrayList<>(); // Create an ArrayList object
+    DefaultTableModel model;
     /**
      * Creates new form Fenetre
      */
@@ -42,7 +48,7 @@ public class Fenetre extends javax.swing.JFrame {
         btnAjouter = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        txtSearch = new javax.swing.JTextField();
         btnChercher = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         tableauEtudiant = new javax.swing.JTable();
@@ -183,14 +189,19 @@ public class Fenetre extends javax.swing.JFrame {
 
         jLabel4.setText("Chercher un étudiant");
 
-        jTextField1.setFont(new java.awt.Font("Liberation Sans", 0, 18)); // NOI18N
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        txtSearch.setFont(new java.awt.Font("Liberation Sans", 0, 18)); // NOI18N
+        txtSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                txtSearchActionPerformed(evt);
             }
         });
 
         btnChercher.setText("Valider");
+        btnChercher.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnChercherActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -204,7 +215,7 @@ public class Fenetre extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
                         .addGap(15, 15, 15)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(20, Short.MAX_VALUE))
         );
@@ -214,7 +225,7 @@ public class Fenetre extends javax.swing.JFrame {
                 .addGap(14, 14, 14)
                 .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(btnChercher, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -228,6 +239,11 @@ public class Fenetre extends javax.swing.JFrame {
                 "Numéro", "Nom", "Prénom", "Age"
             }
         ));
+        tableauEtudiant.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableauEtudiantMouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(tableauEtudiant);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -287,19 +303,129 @@ public class Fenetre extends javax.swing.JFrame {
 
     private void btnSupprimerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSupprimerActionPerformed
         // TODO add your handling code here:
+        model = (DefaultTableModel)tableauEtudiant.getModel();
+        int ligne = tableauEtudiant.getSelectedRow();
+        if(ligne != -1){
+            etudiants.remove(ligne);
+            model .removeRow(ligne);
+            viderchamps();
+        }
     }//GEN-LAST:event_btnSupprimerActionPerformed
 
     private void btnModifierActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModifierActionPerformed
         // TODO add your handling code here:
+        model = (DefaultTableModel)tableauEtudiant.getModel();
+        int ligne = tableauEtudiant.getSelectedRow();
+        boolean modif = true;
+        
+        for(Student s:etudiants){
+            if(s.getNom().equals(txtNom.getText()) && s.getPrenom().equals(txtPrenom.getText())){
+                JOptionPane.showMessageDialog(this, "Eleve Existant",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                modif = false;
+                viderchamps();
+            }
+        }
+        
+        if(ligne != -1 && modif){
+            model.setValueAt(txtNom.getText(), ligne, 1);
+            model.setValueAt(txtPrenom.getText(), ligne, 2);
+            model.setValueAt(txtAge.getText(), ligne, 3);
+            etudiants.get(ligne).setNom(txtNom.getText());
+            etudiants.get(ligne).setPrenom(txtPrenom.getText());
+            etudiants.get(ligne).setAge(Integer.valueOf(txtAge.getText()));
+            viderchamps();
+        }
+        
     }//GEN-LAST:event_btnModifierActionPerformed
 
     private void btnAjouterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAjouterActionPerformed
         // TODO add your handling code here:
+        ajouterEtudiant();
     }//GEN-LAST:event_btnAjouterActionPerformed
+    //fonction pour ajouter un etudiant
+    private void ajouterEtudiant(){
+        model = (DefaultTableModel)tableauEtudiant.getModel();
+        boolean ajout = true;
+        if(txtNom.getText().equals("")||txtPrenom.getText().equals("")||txtAge.getText().equals("")){
+            JOptionPane.showMessageDialog(this, "Remplissez tout les champs SVP",
+                    "Champs vides", JOptionPane.ERROR_MESSAGE);
+            ajout = false;
+        }
+        
+        //Verifier la Duplication
+        for(Student s:etudiants){
+            if(s.getNom().equals(txtNom.getText()) && s.getPrenom().equals(txtPrenom.getText())){
+                JOptionPane.showMessageDialog(this, "Eleve Existant",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                ajout = false;
+                viderchamps();
+            }
+        }
+        
+        if(ajout){
+            
+            Student etd = new Student(txtNom.getText(),txtPrenom.getText(),
+                    Integer.valueOf(txtAge.getText()));
+            etudiants.add(etd);
+            model.addRow(new Object[]{etd.getInscription(),etd.getNom(),etd.getPrenom(),etd.getAge()});
+            viderchamps();
+        }
+    }
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void viderchamps() {
+        // VIDER LES CHAMPS
+        txtNom.setText("");
+        txtPrenom.setText("");
+        txtAge.setText("");
+        txtNom.requestFocus();
+    }
+    
+    private void txtSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_txtSearchActionPerformed
+
+    private void tableauEtudiantMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableauEtudiantMouseClicked
+        // TODO add your handling code here:
+        model = (DefaultTableModel)tableauEtudiant.getModel();
+        int ligne = tableauEtudiant.getSelectedRow();
+        if(ligne != -1){
+           txtNom.setText(etudiants.get(ligne).getNom());
+           txtPrenom.setText(etudiants.get(ligne).getPrenom());
+           txtAge.setText(String.valueOf(etudiants.get(ligne).getAge()));
+        }
+        
+    }//GEN-LAST:event_tableauEtudiantMouseClicked
+
+    private void btnChercherActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChercherActionPerformed
+        // TODO add your handling code here:
+        boolean trouve = false;
+        int indice = 0;
+        model = (DefaultTableModel)tableauEtudiant.getModel();
+        if(txtSearch.getText().equals("")){
+            JOptionPane.showMessageDialog(this, "entrez un etudiant SVP", "Champ vide", JOptionPane.WARNING_MESSAGE);
+        }
+        else{
+            for(int i=0;i<etudiants.size();i++){
+                Student s = etudiants.get(i);
+                if(txtSearch.getText().equals(s.getNom())){
+                    trouve = true;
+                    indice = i;
+                    break;
+                }
+            }
+        }
+        
+        if(trouve){
+           txtNom.setText(etudiants.get(indice).getNom());
+           txtPrenom.setText(etudiants.get(indice).getPrenom());
+           txtAge.setText(String.valueOf(etudiants.get(indice).getAge())); 
+           tableauEtudiant.setRowSelectionInterval(indice, indice);
+        }
+        else{
+            JOptionPane.showMessageDialog(this, "Eleve non trouve", "not found", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_btnChercherActionPerformed
 
     /**
      * @param args the command line arguments
@@ -356,10 +482,10 @@ public class Fenetre extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTable tableauEtudiant;
     private javax.swing.JTextField txtAge;
     private javax.swing.JTextField txtNom;
     private javax.swing.JTextField txtPrenom;
+    private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }

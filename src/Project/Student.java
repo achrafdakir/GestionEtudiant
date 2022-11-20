@@ -44,7 +44,7 @@ public class Student {
         this.age = age;
     }
 
-    public static int getInscription() {
+    public int getInscription() {
         return inscription;
     }
 
